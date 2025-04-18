@@ -1,9 +1,25 @@
 from typing import Annotated
+from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from sqlalchemy import func
+from passlib.context import CryptContext
+from jwt.exceptions import InvalidTokenError
+
+import jwt
+
+# to get a string like this run:
+# openssl rand -hex 32
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7" # @TODO: put in config later
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+INITIAL_USERNAME = "iswi"
+INITIAL_CONFERENCE = "ISWI"
+INITIAL_PASSWORD = "password123"
 
 # DATABASE
 
@@ -38,6 +54,26 @@ class HashEntryResponse(BaseModel):
     nationality_hash: bool = False
     comments: list[Comment] | None = None
 
+# information of a user of the system
+class User(SQLModel):
+    username: str | None = Field(default=None, primary_key=True)
+    conference: str
+
+# db internal information of a user
+class UserInDB(User, table=True):
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+
+pwd_context = CryptContext(schemes=["bcrypt"])
+
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -54,6 +90,54 @@ def get_session():
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def verify_password(plain: str, hash: str):
+    return pwd_context.verify(plain, hash)
+
+def get_password_hash(plain: str):
+    return pwd_context.hash(plain)
+
+def get_user(username: str, session: SessionDep) -> (UserInDB | None):
+    return session.exec(select(UserInDB).where(UserInDB.username == username)).first()
+
+def authenticate_user(username: str, password: str, session) -> (UserInDB | bool):
+    user = get_user(username, session)
+    if user == None:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except InvalidTokenError:
+        raise credentials_exception
+    user = get_user(token_data.username, session)
+    if user is None:
+        raise credentials_exception
+    return user
+
 # API
 
 app = FastAPI()
@@ -61,9 +145,20 @@ app = FastAPI()
 @app.on_event("startup") # needs to be changed
 def on_startup():
     create_db_and_tables()
+    with Session(engine) as session:
+        users = session.exec(select(UserInDB)).first()
+        if not users:
+            init_user = UserInDB(
+                username=INITIAL_USERNAME,
+                password=get_password_hash(INITIAL_PASSWORD),
+                conference=INITIAL_CONFERENCE
+            )
+            session.add(init_user)
+            session.commit()
+            print("Initial user created!")
 
 @app.post("/entries/")
-def add_entry(entry: HashEntryBase, session: SessionDep) -> HashEntry:
+def add_entry(entry: HashEntryBase, token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> HashEntry:
     db_entry = HashEntry.model_validate(entry)
     session.add(db_entry)
     session.commit()
@@ -71,7 +166,7 @@ def add_entry(entry: HashEntryBase, session: SessionDep) -> HashEntry:
     return db_entry
 
 @app.post("/entries/check")
-def check_entries(entries: list[HashEntryRequest], session: SessionDep) -> list[HashEntryResponse]:
+def check_entries(entries: list[HashEntryRequest], token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> list[HashEntryResponse]:
     entries_response = list()
     for entry in entries:
         resp = HashEntryResponse()
@@ -100,3 +195,18 @@ def check_entries(entries: list[HashEntryRequest], session: SessionDep) -> list[
         resp.comments = comments
         entries_response.append(resp)
     return entries_response
+
+
+@app.post("/token")
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep) -> Token:
+    user = authenticate_user(form_data.username, form_data.password, session)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    return Token(access_token=access_token, token_type="bearer")
+    
