@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from sqlalchemy import func
@@ -143,6 +144,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.on_event("startup") # needs to be changed
 def on_startup():
     create_db_and_tables()
@@ -212,4 +221,10 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return Token(access_token=access_token, token_type="bearer")
-    
+
+
+@app.get("/users/me/", response_model=User)
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
+    return current_user
+
+#@TODO: logout user
