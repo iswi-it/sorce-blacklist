@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import { createApp } from 'vue';
+import { createBootstrap } from 'bootstrap-vue-next';
 import axios from 'axios';
 
 import App from './App.vue';
@@ -40,4 +41,5 @@ axios.interceptors.response.use(undefined, function (error) {
 const app = createApp(App);
 app.use(router);
 app.use(store);
+app.use(createBootstrap());
 app.mount('#app');
