@@ -3,7 +3,7 @@
     <BAlert v-model="success_countdown" variant="success" dismissible fade>
       Entry was successfully added to SOrCE-Blacklist!
     </BAlert>
-    <BAlert v-model="error_countdown" variant="error" dismissible fade>
+    <BAlert v-model="error_countdown" variant="danger" dismissible fade>
       Entry was successfully added to SOrCE-Blacklist!
     </BAlert>
     <form @submit.prevent="submit">

@@ -13,10 +13,21 @@ const getters = {
 
 const actions = {
   async logIn({ dispatch }, user) {
-    const response = await axios.post('token', user);
-    const token = response.data.access_token;
-    localStorage.setItem('token', token);
-    await dispatch('viewMe');
+    return new Promise(async (resolve, reject) => {
+      const response = axios
+        .post('token', user)
+        .then(async (response) => {
+          const token = response.data.access_token;
+          localStorage.setItem('token', token);
+          await dispatch('viewMe');
+          resolve();
+        })
+        .catch((error) => {
+          if (error.response.status == 401) {
+            reject(error.response.data.detail);
+          }
+        });
+    });
   },
   async viewMe({ commit }) {
     let { data } = await axios.get('users/me');

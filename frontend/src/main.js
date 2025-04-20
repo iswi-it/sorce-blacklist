@@ -29,11 +29,17 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(undefined, function (error) {
   if (error) {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    console.log(originalRequest);
+    if (
+      error.response.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url != 'token'
+    ) {
       originalRequest._retry = true;
       store.dispatch('logOut');
       return router.push('/login');
     }
+    return Promise.reject(error);
   }
 });
 

@@ -1,13 +1,13 @@
 <template>
-  <header>
+  <header v-if="isLoggedIn">
     <div class="px-3 py-2 text-bg-light border-bottom">
       <div class="container">
         <BNavbar toggleable="lg">
           <BNavbarBrand href="">
             <img alt="SOrCE Logo" src="../assets/sorce-logo.png" height="40" />
           </BNavbarBrand>
-          <BNavbarToggle v-if="isLoggedIn" target="nav-collapse" href="/" />
-          <BCollapse v-if="isLoggedIn" id="nav-collapse" is-nav>
+          <BNavbarToggle target="nav-collapse" href="/" />
+          <BCollapse id="nav-collapse" is-nav>
             <BNavbarNav>
               <BNavItem :to="{ name: 'add' }" active-class="active"
                 >Add Entry</BNavItem
@@ -18,7 +18,7 @@
               <BNavItem disabled active-class="active">About</BNavItem>
             </BNavbarNav>
             <BNavbarNav class="ms-auto mb-2 mb-lg-0">
-              <div v-if="isLoggedIn">
+              <div>
                 <span class="me-3">Logged in as {{ getConferenceName }}</span>
                 <a class="btn btn-outline-success" @click="logout">Logout</a>
               </div>
