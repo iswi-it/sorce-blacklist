@@ -13,18 +13,18 @@ const routes = [
   },
   {
     path: '/login',
-    name: 'Login',
+    name: 'login',
     component: LoginView,
   },
   {
     path: '/check',
-    name: 'Check',
+    name: 'check',
     component: CheckEntriesView,
     meta: { requiresAuth: true },
   },
   {
     path: '/add',
-    name: 'AddEntry',
+    name: 'add',
     component: AddEntryView,
     meta: { requiresAuth: true },
   },
