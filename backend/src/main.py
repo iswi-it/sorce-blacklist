@@ -23,6 +23,8 @@ INITIAL_USERNAME = os.getenv("INITIAL_USERNAME", "iswi")
 INITIAL_CONFERENCE = os.getenv("INITIAL_CONFERENCE", "ISWI")
 INITIAL_PASSWORD = os.getenv("INITIAL_PASSWORD", "password123")
 
+REGISTRATION_SECRET = os.getenv("REGISTRATION_SECRET", "1")
+
 # DATABASE
 
 # used for creating a new entry
@@ -60,6 +62,11 @@ class HashEntryResponse(BaseModel):
 class User(SQLModel):
     username: str | None = Field(default=None, primary_key=True)
     conference: str
+
+# model to create a new user, with plain password
+class UserCreate(User):
+    password: str
+    registration_secret: str
 
 # db internal information of a user
 class UserInDB(User, table=True):
@@ -234,4 +241,25 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
-#@TODO: logout user
+@app.post("/users/")
+async def create_user(user: UserCreate, session: SessionDep) -> User:
+    # authenticate with token
+    if user.registration_secret != REGISTRATION_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect registration token",
+            )
+
+    # check if user is already existing
+    existing = session.exec(select(UserInDB).where(UserInDB.username == user.username)).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    # create user
+    password_hash = get_password_hash(user.password)
+    db_user = UserInDB(username=user.username, conference=user.conference, password=password_hash)
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+
