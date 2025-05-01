@@ -14,24 +14,34 @@ const getters = {
 const actions = {
   async logIn({ dispatch }, user) {
     return new Promise(async (resolve, reject) => {
-      const response = axios
+      axios
         .post('token', user)
         .then(async (response) => {
+          // save token and get user data
           const token = response.data.access_token;
           localStorage.setItem('token', token);
           await dispatch('viewMe');
           resolve();
         })
         .catch((error) => {
+          // authentication failed / wrong password or username
           if (error.response.status == 401) {
             reject(error.response.data.detail);
           }
         });
     });
   },
-  async viewMe({ commit }) {
-    let { data } = await axios.get('users/me');
-    await commit('setUser', data);
+  async viewMe({ commit, dispatch }) {
+    axios
+      .get('users/me')
+      .then(async (response) => {
+        // save user data
+        await commit('setUser', response.data);
+      })
+      .catch(async () => {
+        // authentication failed
+        await dispatch('logOut');
+      });
   },
   async logOut({ commit }) {
     localStorage.removeItem('token');

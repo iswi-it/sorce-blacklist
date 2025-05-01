@@ -37,7 +37,7 @@ axios.interceptors.response.use(undefined, function (error) {
     ) {
       originalRequest._retry = true;
       store.dispatch('logOut');
-      return router.push('/login');
+      router.push('/login');
     }
     return Promise.reject(error);
   }

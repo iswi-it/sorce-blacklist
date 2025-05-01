@@ -69,9 +69,11 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class TokenData(BaseModel):
     username: str | None = None
+
+class Statistics(BaseModel):
+    num: int = 0
 
 
 pwd_context = CryptContext(schemes=["bcrypt"])
@@ -176,6 +178,11 @@ def add_entry(entry: HashEntryBase, token: Annotated[str, Depends(oauth2_scheme)
     session.commit()
     session.refresh(db_entry)
     return db_entry
+
+@app.get("/entries/statistics")
+def statistics(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> Statistics:
+    statistics = Statistics(num = session.exec(select(func.count(HashEntry.id))).one())
+    return statistics
 
 @app.post("/entries/check")
 def check_entries(entries: list[HashEntryRequest], token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> list[HashEntryResponse]:

@@ -75,6 +75,7 @@ export default defineComponent({
           this.$router.push('/');
         })
         .catch((error) => {
+          // user login failed -> show error
           this.error.countdown = 10 * 1000;
           this.error.message = error;
         });

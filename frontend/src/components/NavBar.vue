@@ -3,7 +3,7 @@
     <div class="px-3 py-2 text-bg-light border-bottom">
       <div class="container">
         <BNavbar toggleable="lg">
-          <BNavbarBrand href="">
+          <BNavbarBrand :to="{ name: 'home' }">
             <img alt="SOrCE Logo" src="../assets/sorce-logo.png" height="40" />
           </BNavbarBrand>
           <BNavbarToggle target="nav-collapse" href="/" />
@@ -15,7 +15,6 @@
               <BNavItem :to="{ name: 'check' }" active-class="active"
                 >Check Entry</BNavItem
               >
-              <BNavItem disabled active-class="active">About</BNavItem>
             </BNavbarNav>
             <BNavbarNav class="ms-auto mb-2 mb-lg-0">
               <div>
