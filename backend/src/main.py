@@ -245,10 +245,7 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]
 async def create_user(user: UserCreate, session: SessionDep) -> User:
     # authenticate with token
     if user.registration_secret != REGISTRATION_SECRET:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect registration token",
-            )
+        raise HTTPException(status_code=400, detail="Incorrect registration token")
 
     # check if user is already existing
     existing = session.exec(select(UserInDB).where(UserInDB.username == user.username)).first()
