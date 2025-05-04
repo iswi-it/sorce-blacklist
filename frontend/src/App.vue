@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <NavBar />
-    <div class="main container text-center">
+    <div class="main container">
       <router-view />
     </div>
   </div>
@@ -28,11 +28,10 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
 }
 
 .main {
-  padding-top: 5em;
+  padding-top: 4em;
 }
 </style>

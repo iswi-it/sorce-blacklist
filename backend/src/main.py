@@ -81,6 +81,7 @@ class TokenData(BaseModel):
 
 class Statistics(BaseModel):
     num: int = 0
+    conferences: list[str] = None
 
 
 pwd_context = CryptContext(schemes=["bcrypt"])
@@ -186,9 +187,9 @@ def add_entry(entry: HashEntryBase, token: Annotated[str, Depends(oauth2_scheme)
     session.refresh(db_entry)
     return db_entry
 
-@app.get("/entries/statistics")
+@app.get("/statistics")
 def statistics(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> Statistics:
-    statistics = Statistics(num = session.exec(select(func.count(HashEntry.id))).one())
+    statistics = Statistics(num = session.exec(select(func.count(HashEntry.id))).one(), conferences = session.exec(select(UserInDB.conference)))
     return statistics
 
 @app.post("/entries/check")
