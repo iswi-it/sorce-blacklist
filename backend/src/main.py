@@ -32,6 +32,7 @@ class HashEntryBase(SQLModel):
     name_hash: str | None = Field(min_length=64, max_length=64)
     email_hash: str | None = Field(min_length=64, max_length=64)
     birthdate_hash: str | None = Field(min_length=64, max_length=64)
+    nationality_hash: str | None = Field(min_length=64, max_length=64)
     origin: str
     comment: str | None
 
@@ -54,8 +55,8 @@ class Comment(BaseModel):
 class HashEntryResponse(BaseModel):
     name_hash: bool = False
     email_hash: bool = False
-    birthdate_hash: bool = False
     nationality_hash: bool = False
+    birthdate_hash: bool = False
     comments: list[Comment] | None = None
 
 # information of a user of the system
@@ -213,6 +214,10 @@ def check_entries(entries: list[HashEntryRequest], token: Annotated[str, Depends
         if (session.exec(select(func.count(HashEntry.id)).where(HashEntry.birthdate_hash == entry.birthdate_hash)).first() > 0):
             resp.birthdate_hash = True
             id_s.update(session.exec(select(HashEntry.id).where(HashEntry.birthdate_hash == entry.birthdate_hash)).all())
+
+        if (resp.name_hash or resp.email_hash or resp.birthdate_hash): # only when one is true check for the nationality
+            if (session.exec(select(func.count(HashEntry.id)).where(HashEntry.nationality_hash == entry.nationality_hash)).first() > 0):
+                resp.nationality_hash = True
 
         # collect the comments of the collected ids
         for id in id_s:

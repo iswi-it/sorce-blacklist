@@ -1,9 +1,21 @@
 <template>
   <section>
-    <BAlert v-model="success_countdown" variant="success" dismissible fade>
+    <BAlert
+      v-if="success_countdown"
+      v-model="success_countdown"
+      variant="success"
+      dismissible
+      fade
+    >
       Entry was successfully added to SOrCE-Blacklist!
     </BAlert>
-    <BAlert v-model="error_countdown" variant="danger" dismissible fade>
+    <BAlert
+      v-if="error_countdown"
+      v-model="error_countdown"
+      variant="danger"
+      dismissible
+      fade
+    >
       Entry was successfully added to SOrCE-Blacklist!
     </BAlert>
     <h3>Add Participant to Blacklist</h3>
@@ -72,6 +84,7 @@
           :enable-time-picker="false"
           model-type="dd/MM/yyyy"
           format="dd/MM/yyyy"
+          required="true"
         />
         <div class="form-text">
           Please choose the birthdate of participant that will be put on the
@@ -138,6 +151,7 @@ export default defineComponent({
         name_hash: SHA256.hex(normalize(this.form.name)),
         email_hash: SHA256.hex(normalize(this.form.email)),
         birthdate_hash: SHA256.hex(normalize(this.form.birthdate)),
+        nationality_hash: SHA256.hex(normalize(this.form.nationality)),
         origin: this.$store.getters.getConference,
         comment: this.form.comment,
       };
@@ -152,7 +166,7 @@ export default defineComponent({
             this.error_countdown = 1000 * 10;
           }
         })
-        .catch((error) => {
+        .catch(() => {
           this.error_countdown = 1000 * 10;
         });
 

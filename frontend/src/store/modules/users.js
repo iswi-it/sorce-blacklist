@@ -13,7 +13,7 @@ const getters = {
 
 const actions = {
   async logIn({ dispatch }, user) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       axios
         .post('token', user)
         .then(async (response) => {

@@ -106,7 +106,7 @@ export default defineComponent({
       axios
         .post('users', request)
         .then((response) => {
-          if ((response.status = 200)) {
+          if (response.status === 200) {
             this.success.countdown = 30 * 1000;
             this.success.message = `User with username "${response.data.username}" for the conference "${response.data.conference}" was successfully created!`;
             this.form = {

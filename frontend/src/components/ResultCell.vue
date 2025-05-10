@@ -22,8 +22,6 @@ export default defineComponent({
     else css_class.value = 'table-danger';
 
     return {
-      entry_input: props.entry_input,
-      field: props.field,
       css_class: css_class,
     };
   },

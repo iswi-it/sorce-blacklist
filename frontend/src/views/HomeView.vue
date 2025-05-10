@@ -29,7 +29,7 @@
           <h5 class="card-title">Registered Conferences</h5>
           <p class="card-text">
           <ul v-if="conferences">
-            <li v-for="conference in conferences">{{ conference }}</li>
+            <li v-for="conference in conferences" :key="conference">{{ conference }}</li>
           </ul>
           </p>
         </div>

@@ -41,18 +41,19 @@
             <ResultCell
               :entry_input="entries_input[entry.index]"
               :entry_output="entries_output[entry.index]"
-              field="birthdate"
+              field="nationality"
             />
             <ResultCell
               :entry_input="entries_input[entry.index]"
               :entry_output="entries_output[entry.index]"
-              field="nationality"
+              field="birthdate"
             />
 
             <td>
               <div
                 v-for="(comment, commentIndex) in entries_output[entry.index]
                   .comments"
+                :key="commentIndex"
               >
                 <span>{{ comment.origin }}:</span>
                 <span>{{ comment.text }}</span>
@@ -119,7 +120,7 @@ export default defineComponent({
       if (this.file && this.file.type == 'text/csv') {
         // @TODO: check header of csv file
 
-        const results = Papa.parse(this.file, {
+        Papa.parse(this.file, {
           skipEmptyLines: true,
           complete: (results) => {
             this.entries_input = results.data;
@@ -162,7 +163,7 @@ export default defineComponent({
     hashEntries(entries) {
       var SHA256 = new Hashes.SHA256();
 
-      const hashed_entries = entries.map((value, index) => {
+      const hashed_entries = entries.map((value) => {
         console.log(value);
         return {
           name_hash: SHA256.hex(this.normalize(value.name)),
