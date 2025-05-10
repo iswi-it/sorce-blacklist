@@ -10,29 +10,44 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      title: 'Home',
+    },
   },
   {
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: {
+      title: 'Login',
+    },
   },
   {
     path: '/register',
     name: 'register',
     component: RegistrationView,
+    meta: {
+      title: 'Register',
+    },
   },
   {
     path: '/check',
     name: 'check',
     component: CheckEntriesView,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      title: 'Check Entries',
+    },
   },
   {
     path: '/add',
     name: 'add',
     component: AddEntryView,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      title: 'Add Entry',
+    },
   },
 ];
 
@@ -42,6 +57,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _, next) => {
+  document.title = 'SOrCE-Blacklist - ' + to.meta.title;
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (localStorage.getItem('token')) {
       next();
