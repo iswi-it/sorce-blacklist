@@ -1,7 +1,13 @@
 <template>
   <div class="row justify-content-center align-items-center">
     <div class="col-md-4 col-sm-8">
-      <BAlert v-model="error.countdown" variant="danger" dismissible fade>
+      <BAlert
+        v-if="error.countdown"
+        v-model="error.countdown"
+        variant="danger"
+        dismissible
+        fade
+      >
         {{ error.message }}
       </BAlert>
 
@@ -9,7 +15,7 @@
         alt="SOrCE Logo"
         src="../assets/sorce-logo.png"
         height="100"
-        class="mb-4"
+        class="mb-4 mx-auto d-block"
       />
       <form @submit.prevent="submit">
         <div class="form-floating mb-3">
@@ -35,7 +41,7 @@
           <label for="password">Password</label>
         </div>
         <div class="d-grid">
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="submit" class="btn btn-primary">Login</button>
         </div>
       </form>
     </div>
