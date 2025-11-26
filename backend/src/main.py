@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 from sqlalchemy import func
-from passlib.context import CryptContext
+import bcrypt
 from jwt.exceptions import InvalidTokenError
 
 import jwt
@@ -85,9 +85,6 @@ class Statistics(BaseModel):
     conferences: list[str] = None
 
 
-pwd_context = CryptContext(schemes=["bcrypt"])
-
-
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
@@ -105,11 +102,11 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def verify_password(plain: str, hash: str):
-    return pwd_context.verify(plain, hash)
+def get_password_hash(plain: str) -> str:
+    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
-def get_password_hash(plain: str):
-    return pwd_context.hash(plain)
+def verify_password(plain: str, hashed: str) -> bool:
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 def get_user(username: str, session: SessionDep) -> (UserInDB | None):
     return session.exec(select(UserInDB).where(UserInDB.username == username)).first()
