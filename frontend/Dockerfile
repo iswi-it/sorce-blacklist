@@ -1,13 +1,15 @@
-FROM node:lts-alpine
-
+# build stage
+FROM node:lts-alpine as build-stage
 WORKDIR /app
-
-ENV PATH /app/node_modules/.bin:$PATH
-
-RUN npm install @vue/cli@5.0.8 -g
-
-COPY package.json .
-COPY package-lock.json .
+COPY package*.json ./
 RUN npm install
+COPY . .
+RUN npm run build
 
-CMD ["npm", "run", "serve"]
+# production stage
+FROM nginx:stable-alpine as production-stage
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

@@ -4,12 +4,11 @@ services:
   backend:
     build: ./backend
     ports:
-      - 8000:8000
+      - 8001:8000
     volumes:
       - ./backend:/app
     env_file:
-      - path: ./backend.env
-        required: true
+      - ./backend.env
 
   frontend:
     build: ./frontend
@@ -17,4 +16,4 @@ services:
       - './frontend:/app'
       - '/app/node_modules'
     ports:
-      - 8080:8080
+      - 8081:80

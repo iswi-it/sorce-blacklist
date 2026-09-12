@@ -177,7 +177,7 @@ def on_startup():
             session.commit()
             print("Initial user created!")
 
-@app.post("/entries/")
+@app.post("/entries")
 def add_entry(entry: HashEntryBase, token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep) -> HashEntry:
     db_entry = HashEntry.model_validate(entry)
     session.add(db_entry)
@@ -240,11 +240,11 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me/", response_model=User)
+@app.get("/users/me", response_model=User)
 async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
-@app.post("/users/")
+@app.post("/users")
 async def create_user(user: UserCreate, session: SessionDep) -> User:
     # authenticate with token
     if user.registration_secret != REGISTRATION_SECRET:

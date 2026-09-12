@@ -9,7 +9,7 @@ import store from './store';
 
 // default axios settings
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:8000/';
+axios.defaults.baseURL = '/api';
 
 // Automatically add Authorization header if token exists
 axios.interceptors.request.use(

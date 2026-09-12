@@ -18,8 +18,8 @@
           <p class="card-text">
             You can add new entries to the blacklist or check a list of participant data in comparison with the save hashes in the blacklist.
           </p>
-          <a href="#" class="card-link">Add Entry</a>
-          <a href="#" class="card-link">Check Entries</a>
+          <a href="/add" class="card-link">Add Entry</a>
+          <a href="/check" class="card-link">Check Entries</a>
         </div>
       </div>
     </div>

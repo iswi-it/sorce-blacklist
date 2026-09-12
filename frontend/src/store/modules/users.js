@@ -11,6 +11,11 @@ const getters = {
   getConference: (state) => state.conference,
 };
 
+
+// default axios settings
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = '/api';
+
 const actions = {
   async logIn({ dispatch }, user) {
     return new Promise((resolve, reject) => {

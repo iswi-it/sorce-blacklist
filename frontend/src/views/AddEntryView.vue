@@ -117,7 +117,6 @@
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { defineComponent } from 'vue';
-import { normalizeText, normalizeDiacritics } from 'normalize-text';
 import axios from 'axios';
 import { BAlert } from 'bootstrap-vue-next';
 
@@ -181,6 +180,11 @@ export default defineComponent({
 });
 
 function normalize(text) {
-  return normalizeText(normalizeDiacritics(text));
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/\s+/g, "");
 }
 </script>
