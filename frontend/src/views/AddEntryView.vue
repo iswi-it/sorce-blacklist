@@ -57,10 +57,24 @@
         </div>
       </div>
       <div class="mb-3">
-        <label for="email" class="form-label">Nationality:</label>
+        <label for="phone" class="form-label">Phone Number:</label>
         <input
           type="text"
-          name="email"
+          name="phone"
+          v-model="form.phone"
+          class="form-control"
+          required="true"
+        />
+        <div class="form-text">
+          Phone Number of the participant that should be put on the blacklist. Please put the phone number with country code (e.g. "+49"). Data
+          will be hashed!
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="nationality" class="form-label">Nationality:</label>
+        <input
+          type="text"
+          name="nationality"
           v-model="form.nationality"
           class="form-control"
           required="true"
@@ -133,6 +147,7 @@ export default defineComponent({
       form: {
         name: null,
         email: null,
+        phone: null,
         nationality: null,
         birthdate: null,
         comment: null,
@@ -149,6 +164,7 @@ export default defineComponent({
       const request = {
         name_hash: SHA256.hex(normalize(this.form.name)),
         email_hash: SHA256.hex(normalize(this.form.email)),
+        phone_hash: SHA256.hex(normalize(this.form.phone)),
         birthdate_hash: SHA256.hex(normalize(this.form.birthdate)),
         nationality_hash: SHA256.hex(normalize(this.form.nationality)),
         origin: this.$store.getters.getConference,
@@ -179,6 +195,7 @@ export default defineComponent({
   },
 });
 
+// TODO: move it to a helper function
 function normalize(text) {
   return text
     .toLowerCase()

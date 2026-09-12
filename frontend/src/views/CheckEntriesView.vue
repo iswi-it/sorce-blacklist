@@ -15,9 +15,11 @@
       will be checked against the hashes in the blacklist. Each field will be
       hashed locally and then uploaded to the server. Please use the csv format
       as provided in the <a href="/example.csv">example list</a> or listed below:
+    </p>
       <ul>
         <li>name: Full name of participant (case insensitive)</li>
         <li>email: E-Mail address of participant (case insensitive)</li>
+        <li>phone: Phone Number of participant with country code (e.g. +49)</li>
         <li>nationality: Nationality of participant in english (full name) as mentioned in           <a
             href="https://github.com/Imagin-io/country-nationality-list/blob/master/countries.csv"
             target="_blank"
@@ -25,7 +27,7 @@
           > (case insensitive)</li>
         <li>birthdate: Date of bith in format DD/MM/YYYY</li>
       </ul>
-
+    <p>
       After uploading your list, you will see the imported data and you can start the checking process. You will get back only the rows that have been found in the blacklist with comments that have been provided by the person enlisting the participant. The score shows which details of the participant have been found in the blacklist (also marked with red="not found" or green="found").
     </p>
     <BFormFile
@@ -51,6 +53,7 @@
             <th>#</th>
             <th>Full Name</th>
             <th>E-Mail</th>
+            <th>Phone Number</th>
             <th>Nationality</th>
             <th>Date of Birth</th>
             <th>Comment</th>
@@ -69,6 +72,11 @@
               :entry_input="entries_input[entry.index]"
               :entry_output="entries_output[entry.index]"
               field="email"
+            />
+            <ResultCell
+              :entry_input="entries_input[entry.index]"
+              :entry_output="entries_output[entry.index]"
+              field="phone"
             />
             <ResultCell
               :entry_input="entries_input[entry.index]"
@@ -128,7 +136,6 @@
 import { defineComponent } from 'vue';
 import { BFormFile, BButton, BAlert } from 'bootstrap-vue-next';
 import Papa from 'papaparse';
-import { normalizeText, normalizeDiacritics } from 'normalize-text';
 import Hashes from 'jshashes';
 import axios from 'axios';
 import ResultCell from '@/components/ResultCell.vue';
@@ -158,7 +165,7 @@ export default defineComponent({
   methods: {
     handleFileUpload() {
       if (this.file && this.file.type == 'text/csv') {
-        const expectedHeader = ['name', 'email', 'nationality', 'birthdate'];
+        const expectedHeader = ['name', 'email', 'phone', 'nationality', 'birthdate'];
 
         Papa.parse(this.file, {
           skipEmptyLines: true,
@@ -173,7 +180,7 @@ export default defineComponent({
               this.header = results.meta.fields;
               this.file_correct = true;
             } else {
-              this.error.message = 'Please upload a csv file with header (name, email, nationality, birthdate)!'
+              this.error.message = 'Please upload a csv file with header (name, email, phone, nationality, birthdate)!'
               this.error.countdown = 60 * 1000;
             }
           },
@@ -193,10 +200,11 @@ export default defineComponent({
           if (response.status == 200) {
             this.entries_output = response.data;
             await this.entries_output.forEach((value, index) => {
-              if (value.name_hash || value.email_hash || value.birthdate_hash) {
+              if (value.name_hash || value.email_hash || value.phone_hash || value.birthdate_hash) {
                 var score = 0;
                 if (value.name_hash) score += 1;
                 if (value.email_hash) score += 1;
+                if (value.phone_hash) score += 1;
                 if (value.birthdate_hash) score += 0.5;
                 if (value.nationality_hash) score += 0.5;
 
@@ -218,16 +226,14 @@ export default defineComponent({
       const hashed_entries = entries.map((value) => {
         console.log(value);
         return {
-          name_hash: SHA256.hex(this.normalize(value.name)),
-          email_hash: SHA256.hex(this.normalize(value.email)),
-          nationality_hash: SHA256.hex(this.normalize(value.nationality)),
-          birthdate_hash: SHA256.hex(this.normalize(value.birthdate)),
+          name_hash: SHA256.hex(normalize(value.name)),
+          email_hash: SHA256.hex(normalize(value.email)),
+          phone_hash: SHA256.hex(normalize(value.phone)),
+          nationality_hash: SHA256.hex(normalize(value.nationality)),
+          birthdate_hash: SHA256.hex(normalize(value.birthdate)),
         };
       });
       return hashed_entries;
-    },
-    normalize(text) {
-      return normalizeText(normalizeDiacritics(text));
     },
     clearResult() {
       this.file = null;
@@ -238,4 +244,14 @@ export default defineComponent({
     }
   },
 });
+
+// TODO: move it to a helper function
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .replace(/\s+/g, "");
+}
 </script>

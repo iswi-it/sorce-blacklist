@@ -31,6 +31,7 @@ REGISTRATION_SECRET = os.getenv("REGISTRATION_SECRET", "1")
 class HashEntryBase(SQLModel):
     name_hash: str | None = Field(min_length=64, max_length=64)
     email_hash: str | None = Field(min_length=64, max_length=64)
+    phone_hash: str | None = Field(min_length=64, max_length=64)
     birthdate_hash: str | None = Field(min_length=64, max_length=64)
     nationality_hash: str | None = Field(min_length=64, max_length=64)
     origin: str
@@ -44,6 +45,7 @@ class HashEntry(HashEntryBase, table=True):
 class HashEntryRequest(BaseModel):
     name_hash: str | None
     email_hash: str | None
+    phone_hash: str | None
     birthdate_hash: str | None
     nationality_hash: str | None
 
@@ -55,6 +57,7 @@ class Comment(BaseModel):
 class HashEntryResponse(BaseModel):
     name_hash: bool = False
     email_hash: bool = False
+    phone_hash: bool = False
     nationality_hash: bool = False
     birthdate_hash: bool = False
     comments: list[Comment] | None = None
@@ -207,6 +210,10 @@ def check_entries(entries: list[HashEntryRequest], token: Annotated[str, Depends
         if (session.exec(select(func.count(HashEntry.id)).where(HashEntry.email_hash == entry.email_hash)).first() > 0):
             resp.email_hash = True
             id_s.update(session.exec(select(HashEntry.id).where(HashEntry.email_hash == entry.email_hash)).all())
+
+        if (session.exec(select(func.count(HashEntry.id)).where(HashEntry.phone_hash == entry.phone_hash)).first() > 0):
+            resp.phone_hash = True
+            id_s.update(session.exec(select(HashEntry.id).where(HashEntry.phone_hash == entry.phone_hash)).all())
 
         if (session.exec(select(func.count(HashEntry.id)).where(HashEntry.birthdate_hash == entry.birthdate_hash)).first() > 0):
             resp.birthdate_hash = True
