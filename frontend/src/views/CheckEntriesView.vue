@@ -241,6 +241,7 @@ export default defineComponent({
       this.entries_input = [];
       this.entries_output = [];
       this.entries_found = [];
+      this.file_correct = false;
     }
   },
 });
